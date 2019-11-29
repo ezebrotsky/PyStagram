@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+Cookie = '' # Cookie del header del request
+UserId = '' # Id del usuario
