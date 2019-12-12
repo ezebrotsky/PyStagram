@@ -19,6 +19,7 @@ hasNextPage = True
 endCursor = ''
 countViewers = dict()
 userViewers = dict()
+storyInfoAux = dict()
 
 try:
     while hasNextPage == True:
@@ -42,13 +43,23 @@ try:
         for story in data.get('items'):
             i = i + 1
             userViewers.setdefault(i, {})
+            storyInfoAux.setdefault(i, {})
             countViewers.update({i: story.get('edge_story_media_viewers').get('count')})
 
             edges = story.get('edge_story_media_viewers').get('edges')
             pageInfo = story.get('edge_story_media_viewers').get('page_info')
 
+            storyInfoAux[i]['story_info'] = {}
+
+            # Info (se obtiene una sola vez, al principio)
+            storyInfoAux[i]['story_info']['taken_at_timestamp'] = story.get('taken_at_timestamp')
+            storyInfoAux[i]['story_info']['expiring_at_timestamp'] = story.get('expiring_at_timestamp')
+            storyInfoAux[i]['story_info']['src'] = story.get('video_resources')[0].get('src') if story.get('is_video') == True else story.get('display_url')
+
+            if userViewers[i].get('story_info') == None:
+                userViewers[i]['story_info'] = storyInfoAux[i]['story_info']
+
             for user in edges:
-                #f.write(user.get('node').get('username') + '\n')
                 userViewers[i][user.get('node').get('id')] = user.get('node').get('username')
 
             endCursor = pageInfo.get('end_cursor')
@@ -58,6 +69,6 @@ try:
     json.dump(userViewers, f)
     f.close()
     print(countViewers)
-except:
+except Exception as e:
     os.remove(fileName)
-    print("Hubo un error al leer la info.")
+    print("Hubo un error al leer la info: " + str(e))
